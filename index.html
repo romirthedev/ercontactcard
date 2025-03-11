@@ -297,8 +297,10 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
+            padding: 10px;
+            background: #ffffff;
             animation: qrShimmer 1.8s infinite alternate;
         }
 
@@ -1220,8 +1222,8 @@
             // Create new QR code
             new QRCode(document.getElementById('qrCodeContainer'), {
                 text: qrData,
-                width: 50,
-                height: 50,
+                width: 120,
+                height: 120,
                 colorDark: "#333333",
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
