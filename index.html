@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
+        /* Full CSS Styles */
         :root {
             --primary-color: #98FFCC;
             --primary-dark: #66CC99;
@@ -1372,7 +1373,44 @@
                     </script>
                 </body>
                 </html>
-            
+            `;
+
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${name}-emergency-card.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Add to wallet
+        function addToWallet() {
+            showToast("Wallet functionality not implemented yet");
+        }
+
+        // Show toast message
+        function showToast(message) {
+            const toast = document.getElementById('successToast');
+            toast.querySelector('#toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize Three.js
+        initThreeJS();
+
+        // Apply initial translations
+        applyTranslations(currentLang);
+
+        // Language selector change
+        document.getElementById('langSelect').addEventListener('change', (e) => {
+            applyTranslations(e.target.value);
+        });
     </script>
 </body>
 </html>
