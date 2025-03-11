@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Contact Card Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #98FFCC;
+            --primary-dark: #66CC99;
+            --primary-light: rgba(152, 255, 204, 0.2);
+            --secondary-color: #FF9898;
+            --text-color: #333;
+            --light-text: #666;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(152, 255, 204, 0.3);
+            --card-shadow: 0 20px 60px rgba(152, 255, 204, 0.5);
+            --transition: all 0.4s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--white);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        #threejsCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.7;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        header h1 {
+            color: var(--primary-dark);
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 0 3px 10px rgba(152, 255, 204, 0.5);
+        }
+
+        header p {
+            color: var(--light-text);
+            font-size: 1.1em;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        #tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: var(--white);
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 0 8px;
+            box-shadow: 0 5px 15px rgba(152, 255, 204, 0.2);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            box-shadow: 0 10px 20px rgba(152, 255, 204, 0.4);
+            transform: translateY(-3px);
+        }
+
+        #sections {
+            position: relative;
+        }
+
+        .section {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #form {
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(152, 255, 204, 0.1));
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1em;
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+            transition: var(--transition);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-dark);
+            box-shadow: 0 0 20px rgba(102, 204, 153, 0.6);
+            transform: scale(1.02);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-group input, .input-group select {
+            flex: 1;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        button {
+            padding: 15px 30px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 0 25px rgba(102, 204, 153, 0.8);
+            transform: translateY(-3px);
+        }
+
+        button i {
+            font-size: 1.2em;
+        }
+
+        button.secondary {
+            background: var(--white);
+            border: 2px solid var(--primary-color);
+        }
+
+        button.secondary:hover {
+            background: var(--primary-light);
+        }
+
+        #cardPreview {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            perspective: 1200px;
+        }
+
+        #cardContainer {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        #card {
+            width: 360px;
+            height: 240px;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--white), var(--primary-light));
+            border: 4px solid var(--primary-color);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transform-style: preserve-3d;
+            animation: cardPop 0.9s ease-out forwards;
+            position: relative;
+        }
+
+        #cardBack {
+            width: 360px;
+            height: 240px;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--white), var(--primary-light));
+            border: 4px solid var(--primary-color);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transform-style: preserve-3d;
+            animation: cardPop 0.9s ease-out forwards;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        @keyframes cardPop {
+            0% { transform: translateZ(-100px) scale(0.7); opacity: 0; }
+            80% { transform: translateZ(20px) scale(1.05); opacity: 1; }
+            100% { transform: translateZ(0) scale(1); opacity: 1; }
+        }
+
+        #card h2 {
+            color: var(--text-color);
+            font-size: 1.4em;
+            margin-bottom: 12px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        #card p, #cardBack p {
+            color: var(--light-text);
+            font-size: 0.9em;
+            margin: 6px 0;
+            line-height: 1.4;
+        }
+
+        #card strong, #cardBack strong {
+            color: var(--text-color);
+        }
+
+        #translations {
+            margin-top: 12px;
+            font-size: 0.85em;
+            color: var(--primary-dark);
+        }
+
+        #qrCodeContainer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 80px;
+            height: 80px;
+            animation: qrShimmer 1.8s infinite alternate;
+        }
+
+        @keyframes qrShimmer {
+            0% { box-shadow: 0 0 8px rgba(152, 255, 204, 0.4); }
+            100% { box-shadow: 0 0 20px rgba(152, 255, 204, 0.9); }
+        }
+
+        #cardControls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .wallet-button {
+            display: inline-block;
+            background: url('https://developer.apple.com/wallet/add-to-apple-wallet-guidelines/images/add-to-apple-wallet-badge.svg') no-repeat center;
+            background-size: contain;
+            width: 160px;
+            height: 45px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        #templates {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .template-card {
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(152, 255, 204, 0.4);
+        }
+
+        .template-thumb {
+            height: 150px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .template-thumb i {
+            font-size: 3em;
+            color: var(--primary-dark);
+        }
+
+        .template-info {
+            padding: 15px;
+        }
+
+        .template-info h3 {
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .template-info p {
+            color: var(--light-text);
+            font-size: 0.9em;
+        }
+
+        #aboutSection {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        #aboutSection h2 {
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        #aboutSection p {
+            color: var(--light-text);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .feature {
+            padding: 30px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            text-align: left;
+        }
+
+        .feature:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(152, 255, 204, 0.3);
+        }
+
+        .feature i {
+            font-size: 2.5em;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .feature h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .feature p {
+            color: var(--light-text);
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        footer p {
+            color: var(--light-text);
+            font-size: 0.9em;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            color: var(--primary-dark);
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            background: var(--primary-color);
+            transform: translateY(-5px);
+        }
+
+        /* Language selector */
+        #languageSelector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        #languageSelector select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid var(--primary-color);
+            background: var(--white);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9em;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        /* Success Toast */
+        #successToast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-dark);
+            color: var(--white);
+            padding: 15px 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(102, 204, 153, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+            z-index: 1000;
+        }
+
+        #successToast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-20px);
+        }
+
+        #successToast i {
+            font-size: 1.2em;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--primary-light);
+            border-top: 5px solid var(--primary-dark);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.2em;
+            }
+
+            #form {
+                padding: 30px 20px;
+            }
+
+            .input-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            #card, #cardBack {
+                width: 320px;
+                height: 220px;
+                padding: 20px;
+            }
+
+            #card h2 {
+                font-size: 1.2em;
+            }
+
+            #card p, #cardBack p {
+                font-size: 0.8em;
+            }
+
+            #qrCodeContainer {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .tab {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+
+            #card, #cardBack {
+                width: 280px;
+                height: 190px;
+                padding: 15px;
+            }
+
+            #qrCodeContainer {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        @media print {
+            #threejsCanvas, header, #tabs, #form, button:not(.print-only), footer, #languageSelector, .loading, #successToast {
+                display: none !important;
+            }
+
+            #cardPreview {
+                display: block !important;
+            }
+
+            #card, #cardBack {
+                transform: none !important;
+                animation: none !important;
+                box-shadow: none !important;
+                border: 2px solid #666 !important;
+            }
+
+            @page {
+                size: 4in 2.5in;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="languageSelector">
+        <select id="langSelect">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="ja">日本語</option>
+        </select>
+    </div>
+
+    <canvas id="threejsCanvas"></canvas>
+
+    <div class="container">
+        <header>
+            <h1 id="mainTitle">Emergency Contact Card Generator</h1>
+            <p id="mainDesc">Create a personalized emergency contact card that contains your critical medical information. Perfect for travel, outdoor activities, or daily safety.</p>
+        </header>
+
+        <div id="tabs">
+            <button class="tab active" data-tab="createSection"><i class="fas fa-pen"></i> <span id="createTab">Create</span></button>
+            <button class="tab" data-tab="templatesSection"><i class="fas fa-clone"></i> <span id="templatesTab">Templates</span></button>
+            <button class="tab" data-tab="aboutSection"><i class="fas fa-info-circle"></i> <span id="aboutTab">About</span></button>
+        </div>
+
+        <div id="sections">
+            <div id="createSection" class="section active">
+                <div id="form">
+                    <div class="form-group">
+                        <label for="name" id="nameLabel">Full Name</label>
+                        <input type="text" id="name" placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="medical" id="medicalLabel">Medical Conditions</label>
+                        <input type="text" id="medical" placeholder="Diabetes, Asthma, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="allergies" id="allergiesLabel">Allergies</label>
+                        <input type="text" id="allergies" placeholder="Penicillin, Peanuts, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="medications" id="medicationsLabel">Medications</label>
+                        <input type="text" id="medications" placeholder="Insulin, Albuterol, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bloodType" id="bloodTypeLabel">Blood Type</label>
+                        <select id="bloodType">
+                            <option value="">Unknown</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact" id="contactLabel">Emergency Contact</label>
+                        <div class="input-group">
+                            <input type="text" id="contactName" placeholder="Contact Name">
+                            <input type="tel" id="contactPhone" placeholder="Phone Number">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="secondaryContact" id="secondaryContactLabel">Secondary Contact</label>
+                        <div class="input-group">
+                            <input type="text" id="secondaryContactName" placeholder="Contact Name">
+                            <input type="tel" id="secondaryContactPhone" placeholder="Phone Number">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location" id="locationLabel">Home Address</label>
+                        <textarea id="location" placeholder="123 Main St, City, Country"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="proximity" id="proximityLabel">Nearby Medical Facility</label>
+                        <input type="text" id="proximity" placeholder="General Hospital, 5 miles north">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes" id="notesLabel">Additional Notes</label>
+                        <textarea id="notes" placeholder="Any additional information..."></textarea>
+                    </div>
+
+                    <div class="btn-group">
+                        <button id="generateBtn" onclick="generateCard()"><i class="fas fa-magic"></i> <span id="generateBtnText">Generate Card</span></button>
+                        <button class="secondary" id="resetBtn" onclick="resetForm()"><i class="fas fa-sync-alt"></i> <span id="resetBtnText">Reset Form</span></button>
+                    </div>
+                </div>
+
+                <div id="cardPreview">
+                    <div id="cardContainer">
+                        <div id="card">
+                            <h2 id="cardName"></h2>
+                            <p><strong id="medicalLabel2">Medical:</strong> <span id="cardMedical"></span></p>
+                            <p><strong id="allergiesLabel2">Allergies:</strong> <span id="cardAllergies"></span></p>
+                            <p><strong id="medicationsLabel2">Medications:</strong> <span id="cardMedications"></span></p>
+                            <p><strong id="bloodTypeLabel2">Blood Type:</strong> <span id="cardBloodType"></span></p>
+                            <p><strong id="contactLabel2">Contact:</strong> <span id="cardContact"></span></p>
+                            <div id="qrCodeContainer"></div>
+                        </div>
+                        <div id="cardBack">
+                            <div>
+                                <p><strong id="secondaryContactLabel2">Secondary Contact:</strong> <span id="cardSecondaryContact"></span></p>
+                                <p><strong id="locationLabel2">Location:</strong> <span id="cardLocation"></span></p>
+                                <p><strong id="proximityLabel2">Nearby:</strong> <span id="cardProximity"></span></p>
+                            </div>
+                            <div id="translations"></div>
+                        </div>
+                    </div>
+                    <div id="cardControls">
+                        <button onclick="printCard()"><i class="fas fa-print"></i> <span id="printBtnText">Print Card</span></button>
+                        <button onclick="downloadCard()"><i class="fas fa-download"></i> <span id="downloadBtnText">Download HTML</span></button>
+                        <button onclick="addToWallet()"><i class="fas fa-wallet"></i> <span id="walletBtnText">Add to Wallet</span></button>
+                        <button class="secondary" onclick="editCard()"><i class="fas fa-edit"></i> <span id="editBtnText">Edit Information</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="templatesSection" class="section">
+                <h2 id="templatesTitle">Choose a Template</h2>
+                <p id="templatesDesc">Select a pre-filled template for common medical conditions.</p>
+
+                <div id="templates">
+                    <div class="template-card" onclick="loadTemplate('diabetes')">
+                        <div class="template-thumb">
+                            <i class="fas fa-syringe"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3 id="diabetesTitle">Diabetes</h3>
+                            <p id="diabetesDesc">Type 1 and 2 diabetes information.</p>
+                        </div>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('allergy')">
+                        <div class="template-thumb">
+                            <i class="fas fa-allergies"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3 id="allergyTitle">Severe Allergies</h3>
+                            <p id="allergyDesc">For those with life-threatening allergies.</p>
+                        </div>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('asthma')">
+                        <div class="template-thumb">
+                            <i class="fas fa-lungs"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3 id="asthmaTitle">Asthma</h3>
+                            <p id="asthmaDesc">Asthma and respiratory conditions.</p>
+                        </div>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('heart')">
+                        <div class="template-thumb">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3 id="heartTitle">Heart Condition</h3>
+                            <p id="heartDesc">Cardiac conditions and medications.</p>
+                        </div>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('epilepsy')">
+                        <div class="template-thumb">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3 id="epilepsyTitle">Epilepsy</h3>
+                            <p id="epilepsyDesc">Seizure disorders information.</p>
+                        </div>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('blank')">
+                        <div class="template-thumb">
+                            <i class="fas fa-file"></i>
+                        </div>
+                        <div class="template-info">
+                            <h3 id="blankTitle">Blank Template</h3>
+                            <p id="blankDesc">Start from scratch.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="aboutSection" class="section">
+                <h2 id="aboutTitle">About Emergency Cards</h2>
+                <p id="aboutDesc">Emergency contact cards provide critical medical information to first responders in case of an emergency. Having this information readily available can save valuable time and potentially your life.</p>
+
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3 id="featurePrivacyTitle">Privacy-Focused</h3>
+                        <p id="featurePrivacyDesc">Your data never leaves your device. All processing happens locally in your browser.</p>
+                    </div>
+
+                    <div class="feature">
+                        <i class="fas fa-globe"></i>
+                        <h3 id="featureMultilingualTitle">Multilingual Support</h3>
+                        <p id="featureMultilingualDesc">Includes translations for critical phrases to help you communicate in foreign countries.</p>
+                    </div>
+
+                    <div class="feature">
+                        <i class="fas fa-wallet"></i>
+                        <h3 id="featureWalletTitle">Digital Wallet Integration</h3>
+                        <p id="featureWalletDesc">Add your emergency card to Apple Wallet or Google Pay for easy access.</p>
+                    </div>
+
+                    <div class="feature">
+                        <i class="fas fa-qrcode"></i>
+                        <h3 id="featureQRTitle">QR Code Technology</h3>
+                        <p id="featureQRDesc">Each card includes a QR code that contains all your emergency information.</p>
+                    </div>
+                </div>
+
+                <p id="aboutWhyUse">Why use our emergency card generator?</p>
+                <ul>
+                    <li id="aboutReason1">Free and easy to use with no account required</li>
+                    <li id="aboutReason2">Works offline once loaded</li>
+                    <li id="aboutReason3">Print physical cards or use the digital version</li>
+                    <li id="aboutReason4">Saves lives by providing critical information quickly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="social-links">
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-github"></i></a>
+        </div>
+        <p id="copyright">&copy; 2023 Emergency Card Generator. All rights reserved.</p>
+    </footer>
+
+    <div id="successToast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Card successfully generated!</span>
+    </div>
+
+    <div class="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js Background
+        function initThreeJS() {
+            const canvas = document.getElementById('threejsCanvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            // Create particles
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 200;
+            
+            const posArray = new Float32Array(particlesCount * 3);
+            
+            for(let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 10;
+            }
+            
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.02,
+                color: '#98FFCC',
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+            
+            camera.position.z = 5;
+            
+            // Animation
+            function animate() {
+                requestAnimationFrame(animate);
+                particlesMesh.rotation.x += 0.0005;
+                particlesMesh.rotation.y += 0.0005;
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // Localization
+        const translations = {
+            en: {
+                mainTitle: "Emergency Contact Card Generator",
+                mainDesc: "Create a personalized emergency contact card that contains your critical medical information. Perfect for travel, outdoor activities, or daily safety.",
+                createTab: "Create",
+                templatesTab: "Templates",
+                aboutTab: "About",
+                nameLabel: "Full Name",
+                medicalLabel: "Medical Conditions",
+                allergiesLabel: "Allergies",
+                medicationsLabel: "Medications",
+                bloodTypeLabel: "Blood Type",
+                contactLabel: "Emergency Contact",
+                secondaryContactLabel: "Secondary Contact",
+                locationLabel: "Home Address",
+                proximityLabel: "Nearby Medical Facility",
+                notesLabel: "Additional Notes",
+                generateBtnText: "Generate Card",
+                resetBtnText: "Reset Form",
+                printBtnText: "Print Card",
+                downloadBtnText: "Download HTML",
+                walletBtnText: "Add to Wallet",
+                editBtnText: "Edit Information",
+                templatesTitle: "Choose a Template",
+                templatesDesc: "Select a pre-filled template for common medical conditions.",
+                diabetesTitle: "Diabetes",
+                diabetesDesc: "Type 1 and 2 diabetes information.",
+                allergyTitle: "Severe Allergies",
+                allergyDesc: "For those with life-threatening allergies.",
+                asthmaTitle: "Asthma",
+                asthmaDesc: "Asthma and respiratory conditions.",
+                heartTitle: "Heart Condition",
+                heartDesc: "Cardiac conditions and medications.",
+                epilepsyTitle: "Epilepsy",
+                epilepsyDesc: "Seizure disorders information.",
+                blankTitle: "Blank Template",
+                blankDesc: "Start from scratch.",
+                aboutTitle: "About Emergency Cards",
+                aboutDesc: "Emergency contact cards provide critical medical information to first responders in case of an emergency. Having this information readily available can save valuable time and potentially your life.",
+                featurePrivacyTitle: "Privacy-Focused",
+                featurePrivacyDesc: "Your data never leaves your device. All processing happens locally in your browser.",
+                featureMultilingualTitle: "Multilingual Support",
+                featureMultilingualDesc: "Includes translations for critical phrases to help you communicate in foreign countries.",
+                featureWalletTitle: "Digital Wallet Integration",
+                featureWalletDesc: "Add your emergency card to Apple Wallet or Google Pay for easy access.",
+                featureQRTitle: "QR Code Technology",
+                featureQRDesc: "Each card includes a QR code that contains all your emergency information.",
+                aboutWhyUse: "Why use our emergency card generator?",
+                aboutReason1: "Free and easy to use with no account required",
+                aboutReason2: "Works offline once loaded",
+                aboutReason3: "Print physical cards or use the digital version",
+                aboutReason4: "Saves lives by providing critical information quickly",
+                copyright: "© 2023 Emergency Card Generator. All rights reserved.",
+                toastMessage: "Card successfully generated!",
+                helpPhrase: "I need medical help",
+                allergicPhrase: "I am allergic to",
+                conditionPhrase: "I have a medical condition",
+                callPhrase: "Please call my emergency contact"
+            },
+            es: {
+                mainTitle: "Generador de Tarjetas de Contacto de Emergencia",
+                mainDesc: "Crea una tarjeta de contacto de emergencia personalizada que contiene tu información médica crítica. Perfecto para viajes, actividades al aire libre o seguridad diaria.",
+                createTab: "Crear",
+                templatesTab: "Plantillas",
+                aboutTab: "Acerca de",
+                nameLabel: "Nombre Completo",
+                medicalLabel: "Condiciones Médicas",
+                allergiesLabel: "Alergias",
+                medicationsLabel: "Medicamentos",
+                bloodTypeLabel: "Grupo Sanguíneo",
+                contactLabel: "Contacto de Emergencia",
+                secondaryContactLabel: "Contacto Secundario",
+                locationLabel: "Dirección",
+                proximityLabel: "Centro Médico Cercano",
+                notesLabel: "Notas Adicionales",
+                generateBtnText: "Generar Tarjeta",
+                resetBtnText: "Reiniciar Formulario",
+                printBtnText: "Imprimir Tarjeta",
+                downloadBtnText: "Descargar HTML",
+                walletBtnText: "Añadir a Wallet",
+                editBtnText: "Editar Información",
+                // Additional translations not shown for brevity
+                helpPhrase: "Necesito ayuda médica",
+                allergicPhrase: "Soy alérgico a",
+                conditionPhrase: "Tengo una condición médica",
+                callPhrase: "Por favor llame a mi contacto de emergencia"
+            },
+            fr: {
+                mainTitle: "Générateur de Carte de Contact d'Urgence",
+                mainDesc: "Créez une carte de contact d'urgence personnalisée contenant vos informations médicales critiques. Parfait pour les voyages, les activités de plein air ou la sécurité quotidienne.",
+                // Additional translations not shown for brevity
+                helpPhrase: "J'ai besoin d'aide médicale",
+                allergicPhrase: "Je suis allergique à",
+                conditionPhrase: "J'ai une condition médicale",
+                callPhrase: "Veuillez appeler mon contact d'urgence"
+            },
+            de: {
+                mainTitle: "Notfallkontaktkarten-Generator",
+                mainDesc: "Erstellen Sie eine personalisierte Notfallkontaktkarte mit Ihren wichtigsten medizinischen Informationen. Perfekt für Reisen, Outdoor-Aktivitäten oder tägliche Sicherheit.",
+                // Additional translations not shown for brevity
+                helpPhrase: "Ich brauche medizinische Hilfe",
+                allergicPhrase: "Ich bin allergisch gegen",
+                conditionPhrase: "Ich habe einen medizinischen Zustand",
+                callPhrase: "Bitte rufen Sie meinen Notfallkontakt an"
+            },
+            ja: {
+                mainTitle: "緊急連絡先カードジェネレーター",
+                mainDesc: "あなたの重要な医療情報を含む、パーソナライズされた緊急連絡先カードを作成します。旅行、アウトドア活動、または日常の安全に最適です。",
+                // Additional translations not shown for brevity
+                helpPhrase: "医療援助が必要です",
+                allergicPhrase: "私はアレルギーがあります",
+                conditionPhrase: "私は医学的状態があります",
+                callPhrase: "緊急連絡先に電話してください"
+            }
+        };
+
+        // Current language
+        let currentLang = 'en';
+
+        // Apply translations
+        function applyTranslations(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            
+            // For each element with an ID in the translations, update its text content
+            Object.keys(t).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    // Check if it's an input placeholder
+                    if (element.placeholder !== undefined) {
+                        element.placeholder = t[key];
+                    } else {
+                        element.textContent = t[key];
+                    }
+                }
+            });
+        }
+
+        // Template data
+        const templates = {
+            diabetes: {
+                medical: "Type 1 Diabetes",
+                allergies: "None",
+                medications: "Insulin (NovoRapid), Metformin",
+                bloodType: "O+",
+                notes: "Check blood sugar if unconscious. May need glucose if levels are low."
+            },
+            allergy: {
+                medical: "Severe allergies",
+                allergies: "Peanuts, Shellfish, Bee stings",
+                medications: "EpiPen (Epinephrine auto-injector)",
+                bloodType: "",
+                notes: "If allergic reaction occurs, may need immediate epinephrine injection. Look for EpiPen in bag/pocket."
+            },
+            asthma: {
+                medical: "Asthma",
+                allergies: "Dust, Pollen",
+                medications: "Albuterol inhaler, Montelukast",
+                bloodType: "",
+                notes: "May need rescue inhaler during an asthma attack. Inhaler usually in left pocket or bag."
+            },
+            heart: {
+                medical: "Coronary Artery Disease, Hypertension",
+                allergies: "None",
+                medications: "Atenolol, Aspirin, Nitroglycerin",
+                bloodType: "A+",
+                notes: "Cardiac history. Nitroglycerin tablets for chest pain. Take one tablet sublingually if chest pain occurs."
+            },
+            epilepsy: {
+                medical: "Epilepsy",
+                allergies: "None",
+                medications: "Lamotrigine, Levetiracetam",
+                bloodType: "",
+                notes: "May experience seizures. Do not restrain or put anything in mouth during seizure. Place in recovery position after seizure ends."
+            },
+            blank: {
+                medical: "",
+                allergies: "",
+                medications: "",
+                bloodType: "",
+                notes: ""
+            }
+        };
+
+        // Load template
+        function loadTemplate(templateName) {
+            const template = templates[templateName];
+            
+            document.getElementById('medical').value = template.medical;
+            document.getElementById('allergies').value = template.allergies;
+            document.getElementById('medications').value = template.medications;
+            document.getElementById('bloodType').value = template.bloodType;
+            document.getElementById('notes').value = template.notes;
+            
+            // Switch to create tab
+            document.querySelector('.tab[data-tab="createSection"]').click();
+            
+            // Show success toast
+            showToast(translations[currentLang].templateLoaded || "Template loaded successfully!");
+        }
+
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Hide all sections
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Show the section corresponding to the clicked tab
+                const tabName = tab.getAttribute('data-tab');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // Generate card
+        function generateCard() {
+            const name = document.getElementById('name').value;
+            const medical = document.getElementById('medical').value;
+            const allergies = document.getElementById('allergies').value;
+            const medications = document.getElementById('medications').value;
+            const bloodType = document.getElementById('bloodType').value;
+            const contactName = document.getElementById('contactName').value;
+            const contactPhone = document.getElementById('contactPhone').value;
+            const secondaryContactName = document.getElementById('secondaryContactName').value;
+            const secondaryContactPhone = document.getElementById('secondaryContactPhone').value;
+            const location = document.getElementById('location').value;
+            const proximity = document.getElementById('proximity').value;
+            const notes = document.getElementById('notes').value;
+            
+            // Validate name and at least one emergency contact
+            if (!name || (!contactName && !contactPhone)) {
+                showToast("Please enter at least your name and one emergency contact");
+                return;
+            }
+            
+            // Show loading
+            document.querySelector('.loading').classList.add('show');
+            
+            // Update card with information
+            document.getElementById('cardName').textContent = name;
+            document.getElementById('cardMedical').textContent = medical || 'None specified';
+            document.getElementById('cardAllergies').textContent = allergies || 'None specified';
+            document.getElementById('cardMedications').textContent = medications || 'None specified';
+            document.getElementById('cardBloodType').textContent = bloodType || 'Unknown';
+            document.getElementById('cardContact').textContent = contactName && contactPhone ? 
+                `${contactName}: ${contactPhone}` : (contactName || contactPhone || 'None specified');
+            document.getElementById('cardSecondaryContact').textContent = secondaryContactName && secondaryContactPhone ? 
+                `${secondaryContactName}: ${secondaryContactPhone}` : (secondaryContactName || secondaryContactPhone || 'None specified');
+            document.getElementById('cardLocation').textContent = location || 'Not specified';
+            document.getElementById('cardProximity').textContent = proximity || 'Not specified';
+            
+            // Generate QR code
+            const qrData = `
+                Name: ${name}
+                Medical Conditions: ${medical}
+                Allergies: ${allergies}
+                Medications: ${medications}
+                Blood Type: ${bloodType}
+                Emergency Contact: ${contactName} ${contactPhone}
+                Secondary Contact: ${secondaryContactName} ${secondaryContactPhone}
+                Home Address: ${location}
+                Nearby Medical Facility: ${proximity}
+                Additional Notes: ${notes}
+            `;
+            
+            // Clear previous QR code
+            document.getElementById('qrCodeContainer').innerHTML = '';
+            
+            // Create new QR code
+            new QRCode(document.getElementById('qrCodeContainer'), {
+                text: qrData,
+                width: 80,
+                height: 80,
+                colorDark: "#333333",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            // Add translations to the card
+            const t = translations[currentLang];
+            document.getElementById('translations').innerHTML = `
+                <p><em>${t.helpPhrase}</em> - Help</p>
+                <p><em>${t.allergicPhrase}</em> - Allergic</p>
+                <p><em>${t.conditionPhrase}</em> - Condition</p>
+                <p><em>${t.callPhrase}</em> - Call</p>
+            `;
+            
+            // Hide form, show card preview
+            document.getElementById('form').style.display = 'none';
+            document.getElementById('cardPreview').style.display = 'block';
+            
+            // Hide loading
+            setTimeout(() => {
+                document.querySelector('.loading').classList.remove('show');
+                showToast(translations[currentLang].toastMessage || "Card successfully generated!");
+            }, 1000);
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('name').value = '';
+            document.getElementById('medical').value = '';
+            document.getElementById('allergies').value = '';
+            document.getElementById('medications').value = '';
+            document.getElementById('bloodType').value = '';
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('secondaryContactName').value = '';
+            document.getElementById('secondaryContactPhone').value = '';
+            document.getElementById('location').value = '';
+            document.getElementById('proximity').value = '';
+            document.getElementById('notes').value = '';
+            
+            showToast(translations[currentLang].formReset || "Form has been reset");
+        }
+
+        // Edit card
+        function editCard() {
+            document.getElementById('form').style.display = 'block';
+            document.getElementById('cardPreview').style.display = 'none';
+        }
+
+        // Print card
+        function printCard() {
+            window.print();
+        }
+
+        // Download card as HTML
+        function downloadCard() {
+            const name = document.getElementById('name').value || 'emergency';
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Emergency Card for ${name}</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                        }
+                        .card-container {
+                            display: flex;
+                            justify-content: center;
+                            gap: 20px;
+                            flex-wrap: wrap;
+                        }
+                        .card {
+                            width: 360px;
+                            height: 240px;
+                            padding: 25px;
+                            background: #ffffff;
+                            border: 4px solid #98FFCC;
+                            border-radius: 20px;
+                            box-shadow: 0 10px 30px rgba(152, 255, 204, 0.3);
+                            position: relative;
+                        }
+                        .card h2 {
+                            color: #333;
+                            font-size: 1.4em;
+                            margin-bottom: 12px;
+                        }
+                        .card p {
+                            color: #666;
+                            font-size: 0.9em;
+                            margin: 6px 0;
+                            line-height: 1.4;
+                        }
+                        .card strong {
+                            color: #333;
+                        }
+                        .qr-code {
+                            position: absolute;
+                            top: 15px;
+                            right: 15px;
+                            width: 80px;
+                            height: 80px;
+                        }
+                        @media print {
+                            body {
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .card {
+                                border: 2px solid #666;
+                                box-shadow: none;
+                            }
+                            @page {
+                                size: 4in 2.5in;
+                                margin: 0;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="card-container">
+                        <div class="card">
+                            <h2>${document.getElementById('cardName').textContent}</h2>
+                            <p><strong>Medical:</strong> ${document.getElementById('cardMedical').textContent}</p>
+                            <p><strong>Allergies:</strong> ${document.getElementById('cardAllergies').textContent}</p>
+                            <p><strong>Medications:</strong> ${document.getElementById('cardMedications').textContent}</p>
+                            <p><strong>Blood Type:</strong> ${document.getElementById('cardBloodType').textContent}</p>
+                            <p><strong>Contact:</strong> ${document.getElementById('cardContact').textContent}</p>
+                            <div class="qr-code">
+                                <!-- QR code will be printed as image -->
+                                <img src="${document.querySelector('#qrCodeContainer img').src}" width="80" height="80">
+                            </div>
+                        </div>
+                        <div class="card">
+                            <p><strong>Secondary Contact:</strong> ${document.getElementById('cardSecondaryContact').textContent}</p>
+                            <p><strong>Location:</strong> ${document.getElementById('cardLocation').textContent}</p>
+                            <p><strong>Nearby:</strong> ${document.getElementById('cardProximity').textContent}</p>
+                            <div id="translations">
+                                ${document.getElementById('translations').innerHTML}
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        }
+                    </script>
+                </body>
+                </html>
+            
+    </script>
+</body>
+</html>
