@@ -1168,88 +1168,85 @@
 
         // Generate card
         function generateCard() {
-            const name = document.getElementById('name').value;
-            const medical = document.getElementById('medical').value;
-            const allergies = document.getElementById('allergies').value;
-            const medications = document.getElementById('medications').value;
-            const bloodType = document.getElementById('bloodType').value;
-            const contactName = document.getElementById('contactName').value;
-            const contactPhone = document.getElementById('contactPhone').value;
-            const secondaryContactName = document.getElementById('secondaryContactName').value;
-            const secondaryContactPhone = document.getElementById('secondaryContactPhone').value;
-            const location = document.getElementById('location').value;
-            const proximity = document.getElementById('proximity').value;
-            const notes = document.getElementById('notes').value;
-            
-            // Validate name and at least one emergency contact
-            if (!name || (!contactName && !contactPhone)) {
-                showToast("Please enter at least your name and one emergency contact");
-                return;
-            }
-            
-            // Show loading
-            document.querySelector('.loading').classList.add('show');
-            
-            // Update card with information
-            document.getElementById('cardName').textContent = name;
-            document.getElementById('cardMedical').textContent = medical || 'None specified';
-            document.getElementById('cardAllergies').textContent = allergies || 'None specified';
-            document.getElementById('cardMedications').textContent = medications || 'None specified';
-            document.getElementById('cardBloodType').textContent = bloodType || 'Unknown';
-            document.getElementById('cardContact').textContent = contactName && contactPhone ? 
-                `${contactName}: ${contactPhone}` : (contactName || contactPhone || 'None specified');
-            document.getElementById('cardSecondaryContact').textContent = secondaryContactName && secondaryContactPhone ? 
-                `${secondaryContactName}: ${secondaryContactPhone}` : (secondaryContactName || secondaryContactPhone || 'None specified');
-            document.getElementById('cardLocation').textContent = location || 'Not specified';
-            document.getElementById('cardProximity').textContent = proximity || 'Not specified';
-            
-            // Generate QR code
-            const qrData = `
-                Name: ${name}
-                Medical Conditions: ${medical}
-                Allergies: ${allergies}
-                Medications: ${medications}
-                Blood Type: ${bloodType}
-                Emergency Contact: ${contactName} ${contactPhone}
-                Secondary Contact: ${secondaryContactName} ${secondaryContactPhone}
-                Home Address: ${location}
-                Nearby Medical Facility: ${proximity}
-                Additional Notes: ${notes}
-            `;
-            
-            // Clear previous QR code
-            document.getElementById('qrCodeContainer').innerHTML = '';
-            
-            // Create new QR code
-            new QRCode(document.getElementById('qrCodeContainer'), {
-                text: qrData,
-                width: 150,
-                height: 150,
-                padding: 20,
-                colorDark: "#333333",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            
-            // Add translations to the card
-            const t = translations[currentLang];
-            document.getElementById('translations').innerHTML = `
-                <p><em>${t.helpPhrase}</em> - Help</p>
-                <p><em>${t.allergicPhrase}</em> - Allergic</p>
-                <p><em>${t.conditionPhrase}</em> - Condition</p>
-                <p><em>${t.callPhrase}</em> - Call</p>
-            `;
-            
-            // Hide form, show card preview
-            document.getElementById('form').style.display = 'none';
-            document.getElementById('cardPreview').style.display = 'block';
-            
-            // Hide loading
-            setTimeout(() => {
-                document.querySelector('.loading').classList.remove('show');
-                showToast(translations[currentLang].toastMessage || "Card successfully generated!");
-            }, 1000);
-        }
+    const name = document.getElementById('name').value;
+    const medical = document.getElementById('medical').value;
+    const allergies = document.getElementById('allergies').value;
+    const medications = document.getElementById('medications').value;
+    const bloodType = document.getElementById('bloodType').value;
+    const contactName = document.getElementById('contactName').value;
+    const contactPhone = document.getElementById('contactPhone').value;
+    const secondaryContactName = document.getElementById('secondaryContactName').value;
+    const secondaryContactPhone = document.getElementById('secondaryContactPhone').value;
+    const location = document.getElementById('location').value;
+    const proximity = document.getElementById('proximity').value;
+    const notes = document.getElementById('notes').value;
+
+    // Validate name and at least one emergency contact
+    if (!name || (!contactName && !contactPhone)) {
+        showToast("Please enter at least your name and one emergency contact");
+        return;
+    }
+
+    // Show loading
+    document.querySelector('.loading').classList.add('show');
+
+    // Update card with information
+    document.getElementById('cardName').textContent = name;
+    document.getElementById('cardMedical').textContent = medical || 'None specified';
+    document.getElementById('cardAllergies').textContent = allergies || 'None specified';
+    document.getElementById('cardMedications').textContent = medications || 'None specified';
+    document.getElementById('cardBloodType').textContent = bloodType || 'Unknown';
+    document.getElementById('cardContact').textContent = contactName && contactPhone ?
+        `${contactName}: ${contactPhone}` : (contactName || contactPhone || 'None specified');
+    document.getElementById('cardSecondaryContact').textContent = secondaryContactName && secondaryContactPhone ?
+        `${secondaryContactName}: ${secondaryContactPhone}` : (secondaryContactName || secondaryContactPhone || 'None specified');
+    document.getElementById('cardLocation').textContent = location || 'Not specified';
+    document.getElementById('cardProximity').textContent = proximity || 'Not specified';
+
+    // Generate QR code with structured data
+    const qrData = `BEGIN:VCARD
+VERSION:3.0
+FN:${name}
+ORG:Emergency Contact Card
+TEL;TYPE=CELL:${contactPhone}
+TEL;TYPE=CELL:${secondaryContactPhone}
+ADR;TYPE=HOME:${location}
+NOTE:Medical Conditions: ${medical}\nAllergies: ${allergies}\nMedications: ${medications}\nBlood Type: ${bloodType}\nNearby Medical Facility: ${proximity}\nAdditional Notes: ${notes}
+END:VCARD`;
+
+    // Clear previous QR code
+    document.getElementById('qrCodeContainer').innerHTML = '';
+
+    // Create new QR code
+    new QRCode(document.getElementById('qrCodeContainer'), {
+        text: qrData,
+        width: 150,
+        height: 150,
+        padding: 20,
+        colorDark: "#333333",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // Add translations to the card
+    const t = translations[currentLang];
+    document.getElementById('translations').innerHTML = `
+        <p><em>${t.helpPhrase}</em> - Help</p>
+        <p><em>${t.allergicPhrase}</em> - Allergic</p>
+        <p><em>${t.conditionPhrase}</em> - Condition</p>
+        <p><em>${t.callPhrase}</em> - Call</p>
+    `;
+
+    // Hide form, show card preview
+    document.getElementById('form').style.display = 'none';
+    document.getElementById('cardPreview').style.display = 'block';
+
+    // Hide loading
+    setTimeout(() => {
+        document.querySelector('.loading').classList.remove('show');
+        showToast(translations[currentLang].toastMessage || "Card successfully generated!");
+    }, 1000);
+}
 
         // Reset form
         function resetForm() {
